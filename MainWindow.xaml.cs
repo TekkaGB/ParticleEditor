@@ -169,8 +169,10 @@ namespace ParticleEditor
                 // Skip pass unneeded info
                 pos += 49;
                 // Loop and get data until Values are grabbed
-                while (pos != -1)
+                while (pos > 0)
                     pos = color.AddData(fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
+                if (pos == -2)
+                    MessageBox.Show($"Failed to correctly parse particle data for {particle}");
                 ParticleData.Add(particle, color);
                 offset++;
             }
@@ -291,8 +293,10 @@ namespace ParticleEditor
                 var pos = particle.offset;
                 pos += 49;
                 // Loop through all particles and write the info
-                while (pos != -1)
+                while (pos > 0)
                     pos = particle.OverwriteData(ref fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
+                if (pos == -2)
+                    MessageBox.Show($"Failed to correctly write particle data for {particle}");
             }
             return fileBytes;
         }
