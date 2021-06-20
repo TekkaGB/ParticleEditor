@@ -1,5 +1,5 @@
 # ParticleEditor
-Edit ParticleModuleColorOverTime values
+Edit ParticleModuleColorOverTime values in .uexp files for Guilty Gear -Strive- and Dragon Ball FighterZ
 
 ## Usage
 - Make sure the correct game is selected
