@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ParticleEditor"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d" Background="#252525"
         Title="Particle Editor" Height="270" Width="700">
     <Window.Resources>
@@ -50,9 +51,9 @@
                     <RowDefinition Height="22"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3">
                     <TextBlock Margin="5" Foreground="#f2f2f2" VerticalAlignment="Center" Text="Max Value Vector:"/>
-                    <Border Name="MaxColorPreview" Background="Black" Height="40" Width="40"/>
+                    <xctk:ColorPicker TabBackground="#353535" TabForeground="#f2f2f2" IsEnabled="False" Width="100" ShowAvailableColors="False" ShowStandardColors="False" ShowTabHeaders="False" ShowDropDownButton="False" ColorMode="ColorCanvas" Name="MaxColorPreview" SelectedColorChanged="MaxColorPreview_SelectedColorChanged" SelectedColor="Black" UsingAlphaChannel="False"/>
                 </StackPanel>
                 <StackPanel Margin="5" Grid.Row="1">
                     <TextBlock Foreground="#f2f2f2" VerticalAlignment="Center" Text="R:"/>
@@ -67,9 +68,9 @@
                     <TextBox TextChanged="MaxValueBoxB_TextChanged" IsEnabled="False" Foreground="#f2f2f2" Name="MaxValueBoxB" Background="#404040" BorderBrush="#353535" Height="20"/>
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" Grid.Row="2">
+                <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="3">
                     <TextBlock Margin="5" Foreground="#f2f2f2" VerticalAlignment="Center" Text="Min Value Vector:" />
-                    <Border Name="MinColorPreview" Background="Black" Height="40" Width="40"/>
+                    <xctk:ColorPicker TabBackground="#353535" TabForeground="#f2f2f2" IsEnabled="False" Width="100" ShowAvailableColors="False" ShowStandardColors="False" ShowTabHeaders="False" ShowDropDownButton="False" ColorMode="ColorCanvas" Name="MinColorPreview" SelectedColorChanged="MinColorPreview_SelectedColorChanged" SelectedColor="Black" UsingAlphaChannel="False"/>
                 </StackPanel>
                 <StackPanel Margin="5" Grid.Row="3">
                     <TextBlock Foreground="#f2f2f2" VerticalAlignment="Center" Text="R:"/>

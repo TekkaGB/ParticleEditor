@@ -204,6 +204,8 @@ namespace ParticleEditor
                 MinValueBoxR.IsEnabled = true;
                 MinValueBoxG.IsEnabled = true;
                 MinValueBoxB.IsEnabled = true;
+                MaxColorPreview.IsEnabled = true;
+                MinColorPreview.IsEnabled = true;
                 if (data.MaxValueVec != null)
                 {
                     MaxValueBoxR.Text = data.MaxValueVec.R.ToString();
@@ -218,6 +220,10 @@ namespace ParticleEditor
                     MaxValueBoxR.IsEnabled = false;
                     MaxValueBoxG.IsEnabled = false;
                     MaxValueBoxB.IsEnabled = false;
+                    ExternalColorChange = true;
+                    MaxColorPreview.SelectedColor = Colors.Black;
+                    ExternalColorChange = false;
+                    MaxColorPreview.IsEnabled = false;
                 }
                 if (data.MinValueVec != null)
                 {
@@ -233,18 +239,25 @@ namespace ParticleEditor
                     MinValueBoxR.IsEnabled = false;
                     MinValueBoxG.IsEnabled = false;
                     MinValueBoxB.IsEnabled = false;
+                    ExternalColorChange = true;
+                    MinColorPreview.SelectedColor = Colors.Black;
+                    ExternalColorChange = false;
+                    MaxColorPreview.IsEnabled = false;
                 }
                 UpdateColors();
             }
         }
 
+        bool ExternalColorChange;
         private void UpdateColors()
         {
+            ExternalColorChange = true;
             float MaxR, MaxG, MaxB, MinR, MinG, MinB;
             if (Single.TryParse(MaxValueBoxR.Text, out MaxR) && Single.TryParse(MaxValueBoxG.Text, out MaxG) && Single.TryParse(MaxValueBoxB.Text, out MaxB))
-                MaxColorPreview.Background = new SolidColorBrush(Color.FromScRgb(1.0f, MaxR, MaxG, MaxB));
+                MaxColorPreview.SelectedColor = Color.FromScRgb(1.0f, MaxR, MaxG, MaxB);
             if (Single.TryParse(MinValueBoxR.Text, out MinR) && Single.TryParse(MinValueBoxG.Text, out MinG) && Single.TryParse(MinValueBoxB.Text, out MinB))
-                MinColorPreview.Background = new SolidColorBrush(Color.FromScRgb(1.0f, MinR, MinG, MinB));
+                MinColorPreview.SelectedColor = Color.FromScRgb(1.0f, MinR, MinG, MinB);
+            ExternalColorChange = false;
         }
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -364,6 +377,25 @@ namespace ParticleEditor
             if (EnforceEquality)
                 MaxValueBoxB.Text = MinValueBoxB.Text;
             UpdateColors();
+        }
+
+        private void MaxColorPreview_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            if (!ExternalColorChange && IsLoaded)
+            {
+                MaxValueBoxR.Text = MaxColorPreview.SelectedColor.Value.ScR.ToString();
+                MaxValueBoxG.Text = MaxColorPreview.SelectedColor.Value.ScG.ToString();
+                MaxValueBoxB.Text = MaxColorPreview.SelectedColor.Value.ScB.ToString();
+            }
+        }
+        private void MinColorPreview_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            if (!ExternalColorChange && IsLoaded)
+            {
+                MinValueBoxR.Text = MinColorPreview.SelectedColor.Value.ScR.ToString();
+                MinValueBoxG.Text = MinColorPreview.SelectedColor.Value.ScG.ToString();
+                MinValueBoxB.Text = MinColorPreview.SelectedColor.Value.ScB.ToString();
+            }
         }
     }
 }
