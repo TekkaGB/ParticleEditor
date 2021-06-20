@@ -13,7 +13,7 @@ namespace ParticleEditor
         public static int OverwriteData(this ColorOverLife color, ref byte[] fileBytes, int pos, Map<string, int> NameTable, Game game)
         {
             // Get data depending on type
-            switch (NameTable.Reverse[Convert.ToInt32(fileBytes[pos])])
+            switch (NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos+4)])])
             {
                 case "MinValue":
                     BitConverter.GetBytes(color.MinValue).CopyTo(fileBytes, pos + 25);
@@ -64,7 +64,7 @@ namespace ParticleEditor
         public static int AddData(this ColorOverLife color, byte[] fileBytes, int pos, Map<string, int> NameTable, Game game)
         {
             // Write data depending on type
-            switch (NameTable.Reverse[Convert.ToInt32(fileBytes[pos])])
+            switch (NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos+4)])])
             {
                 case "MinValue":
                     color.MinValue = BitConverter.ToSingle(fileBytes[(pos + 25)..(pos + 29)]);
