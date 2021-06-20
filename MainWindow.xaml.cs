@@ -234,7 +234,17 @@ namespace ParticleEditor
                     MinValueBoxG.IsEnabled = false;
                     MinValueBoxB.IsEnabled = false;
                 }
+                UpdateColors();
             }
+        }
+
+        private void UpdateColors()
+        {
+            float MaxR, MaxG, MaxB, MinR, MinG, MinB;
+            if (Single.TryParse(MaxValueBoxR.Text, out MaxR) && Single.TryParse(MaxValueBoxG.Text, out MaxG) && Single.TryParse(MaxValueBoxB.Text, out MaxB))
+                MaxColorPreview.Background = new SolidColorBrush(Color.FromScRgb(1.0f, MaxR, MaxG, MaxB));
+            if (Single.TryParse(MinValueBoxR.Text, out MinR) && Single.TryParse(MinValueBoxG.Text, out MinG) && Single.TryParse(MinValueBoxB.Text, out MinB))
+                MinColorPreview.Background = new SolidColorBrush(Color.FromScRgb(1.0f, MinR, MinG, MinB));
         }
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -323,31 +333,37 @@ namespace ParticleEditor
         {
             if (EnforceEquality)
                 MinValueBoxR.Text = MaxValueBoxR.Text;
+            UpdateColors();
         }
         private void MaxValueBoxG_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MinValueBoxG.Text = MaxValueBoxG.Text;
+            UpdateColors();
         }
         private void MaxValueBoxB_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MinValueBoxB.Text = MaxValueBoxB.Text;
+            UpdateColors();
         }
         private void MinValueBoxR_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MaxValueBoxR.Text = MinValueBoxR.Text;
+            UpdateColors();
         }
         private void MinValueBoxG_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MaxValueBoxG.Text = MinValueBoxG.Text;
+            UpdateColors();
         }
         private void MinValueBoxB_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MaxValueBoxB.Text = MinValueBoxB.Text;
+            UpdateColors();
         }
     }
 }
