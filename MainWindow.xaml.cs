@@ -82,6 +82,12 @@ namespace ParticleEditor
             VectorData = null;
             ScalarData = null;
             EnforceEquality = false;
+            MaxColorPreview.SelectedColor = Colors.Black;
+            MaxColorPreview.IsEnabled = false;
+            MinColorPreview.SelectedColor = Colors.Black;
+            MinColorPreview.IsEnabled = false;
+            VectorColorPreview.SelectedColor = Colors.Black;
+            VectorColorPreview.IsEnabled = false;
             MaxValueBoxR.Text = String.Empty;
             MaxValueBoxG.Text = String.Empty;
             MaxValueBoxB.Text = String.Empty;
@@ -110,12 +116,6 @@ namespace ParticleEditor
             Particles.IsEnabled = false;
             Scalars.ItemsSource = null;
             Scalars.IsEnabled = false;
-            MaxColorPreview.SelectedColor = Colors.Black;
-            MaxColorPreview.IsEnabled = false;
-            MinColorPreview.SelectedColor = Colors.Black;
-            MinColorPreview.IsEnabled = false;
-            VectorColorPreview.SelectedColor = Colors.Black;
-            VectorColorPreview.IsEnabled = false;
         }
         Map<string, int> NameTable;
         HashSet<string> ParticleNames;
@@ -176,6 +176,15 @@ namespace ParticleEditor
             {
                 while ((line = stream.ReadLine()) != null)
                 {
+                    var reg = new Regex(@"ParticleModuleColor_\d+'");
+                    var match = reg.Match(line);
+                    if (match.Success)
+                        ParticleNames.Add(match.Value.Replace("'", String.Empty));
+                }
+                stream.DiscardBufferedData();
+                stream.BaseStream.Seek(0, SeekOrigin.Begin);
+                while ((line = stream.ReadLine()) != null)
+                {
                     var reg = new Regex(@"ParticleModuleColorOverLife_\d+'");
                     var match = reg.Match(line);
                     if (match.Success)
@@ -203,13 +212,18 @@ namespace ParticleEditor
         {
             ParticleData = new();
             // Use ColorOverLife and StructProperty (not Vector) integers to find the start of each Particle
-            var Pattern = new byte[12]; 
-            BitConverter.GetBytes(NameTable.Forward["ColorOverLife"]).CopyTo(Pattern, 0);
+            var Pattern = new byte[12];
             BitConverter.GetBytes(NameTable.Forward["StructProperty"]).CopyTo(Pattern, 8);
             var fileBytes = File.ReadAllBytes(file);
             int offset = 1;
             foreach (var particle in ParticleNames)
             {
+                string pattern;
+                if (particle.Contains("ParticleModuleColor_"))
+                    pattern = "StartColor";
+                else
+                    pattern = "ColorOverLife";
+                BitConverter.GetBytes(NameTable.Forward[pattern]).CopyTo(Pattern, 0);
                 var color = new ColorOverLife();
                 // Get offset of found pattern
                 var found = Search(fileBytes[offset..], Pattern);
@@ -235,7 +249,11 @@ namespace ParticleEditor
             var fileBytes = File.ReadAllBytes(file);
             var found = Search(fileBytes, Pattern);
             // Go to first name
-            int offset = found + 135;
+            int offset = found;
+            if ((Game)GameBox.SelectedIndex == Game.GGS)
+                offset += 135;
+            else if ((Game)GameBox.SelectedIndex == Game.DBFZ)
+                offset += 86;
             while (true)
             {
                 var scalar = new Scalar();
@@ -263,7 +281,11 @@ namespace ParticleEditor
             var fileBytes = File.ReadAllBytes(file);
             var found = Search(fileBytes, Pattern);
             // Go to first name
-            int offset = found + 135;
+            int offset = found;
+            if ((Game)GameBox.SelectedIndex == Game.GGS)
+                offset += 135;
+            else if ((Game)GameBox.SelectedIndex == Game.DBFZ)
+                offset += 86;
             while (true)
             {
                 var color = new VectorColor();
@@ -404,15 +426,16 @@ namespace ParticleEditor
             // Write data if they exist
             if (ParticleData != null)
             {
-                foreach (var particle in ParticleData.Values)
+                foreach (var key in ParticleData.Keys)
                 {
+                    var particle = ParticleData[key];
                     var pos = particle.offset;
                     pos += 49;
                     // Loop through all particles and write the info
                     while (pos > 0)
                         pos = particle.OverwriteData(ref fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
                     if (pos == -2)
-                        MessageBox.Show($"Failed to correctly write particle data for {particle}");
+                        MessageBox.Show($"Failed to correctly write particle data for {key}");
                 }
             }
             if (VectorData != null)

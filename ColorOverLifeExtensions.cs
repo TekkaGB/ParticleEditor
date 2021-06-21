@@ -61,7 +61,10 @@ namespace ParticleEditor
                         pos = -1;
                         break;
                     default:
-                        return -2;
+                        if (color.Values == null)
+                            return -1;
+                        else
+                            return -2;
                 }
                 return pos;
             }
@@ -134,7 +137,10 @@ namespace ParticleEditor
                         pos = -1;
                         break;
                     default:
-                        return -2;
+                        if (color.Values == null)
+                            return -1;
+                        else
+                            return -2;
                 }
                 return pos;
             }
@@ -155,6 +161,11 @@ namespace ParticleEditor
                         color.name = NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])];
                         pos += 86;
                         break;
+                    case "ParameterName":
+                        pos += 25;
+                        color.name = NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])];
+                        pos += 8;
+                        break;
                     case "ParameterValue":
                         pos += 8;
                         break;
@@ -168,7 +179,10 @@ namespace ParticleEditor
                         color.B = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
                         pos += 4;
                         color.A = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
-                        pos += 126;
+                        if (game == Game.GGS)
+                            pos += 126;
+                        else if (game == Game.DBFZ)
+                            pos += 77;
                         finished = true;
                         break;
                     default:
@@ -193,6 +207,11 @@ namespace ParticleEditor
                         scalar.name = NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])];
                         pos += 86;
                         break;
+                    case "ParameterName":
+                        pos += 25;
+                        scalar.name = NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])];
+                        pos += 8;
+                        break;
                     case "ParameterValue":
                         pos += 8;
                         break;
@@ -200,7 +219,10 @@ namespace ParticleEditor
                         pos += 17;
                         scalar.offset = pos;
                         scalar.value = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
-                        pos += 126;
+                        if (game == Game.GGS)
+                            pos += 126;
+                        else if (game == Game.DBFZ)
+                            pos += 77;
                         finished = true;
                         break;
                     default:
