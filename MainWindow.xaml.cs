@@ -110,7 +110,10 @@ namespace ParticleEditor
             startInfo.CreateNoWindow = true;
             startInfo.UseShellExecute = false;
             startInfo.FileName = UexpExtractor;
-            startInfo.Arguments = $@"-game=ue4.25 ""{Path.ChangeExtension(file, ".uasset")}""";
+            var version = 4.25;
+            if (GameBox.SelectedIndex == 1)
+                version = 4.17;
+            startInfo.Arguments = $@"-game=ue{version} ""{Path.ChangeExtension(file, ".uasset")}""";
             startInfo.WorkingDirectory = AssemblyLocation;
             var output = $"{AssemblyLocation}{Path.DirectorySeparatorChar}{Path.GetFileNameWithoutExtension(file)}";
             if (Directory.Exists(output))
