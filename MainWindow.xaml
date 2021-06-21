@@ -7,9 +7,6 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d" Background="#252525"
         Title="Particle Editor" Height="270" Width="700">
-    <Window.Resources>
-        <local:FloatStringConverter x:Key="FloatStringConverter"/>
-    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.7*"/>

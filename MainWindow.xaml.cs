@@ -285,7 +285,16 @@ namespace ParticleEditor
             if (dialog.ShowDialog() == true)
             {
                 // Write to new file
-                File.WriteAllBytes(dialog.FileName, fileBytes);
+                try
+                {
+                    File.WriteAllBytes(dialog.FileName, fileBytes);
+                    // Copy over uasset as well
+                    File.Copy(Path.ChangeExtension(file, ".uasset"), Path.ChangeExtension(dialog.FileName, ".uasset"), true);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
         }
         private byte[] ExportData()
