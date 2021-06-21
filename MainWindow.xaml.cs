@@ -202,8 +202,10 @@ namespace ParticleEditor
         private void ParseParticleData(string file)
         {
             ParticleData = new();
-            // Use ColorOverLife integer to find the start of each Particle
-            var Pattern = BitConverter.GetBytes(NameTable.Forward["ColorOverLife"]);
+            // Use ColorOverLife and StructProperty (not Vector) integers to find the start of each Particle
+            var Pattern = new byte[12]; 
+            BitConverter.GetBytes(NameTable.Forward["ColorOverLife"]).CopyTo(Pattern, 0);
+            BitConverter.GetBytes(NameTable.Forward["StructProperty"]).CopyTo(Pattern, 8);
             var fileBytes = File.ReadAllBytes(file);
             int offset = 1;
             foreach (var particle in ParticleNames)
@@ -216,6 +218,7 @@ namespace ParticleEditor
                 var pos = offset;
                 // Skip pass unneeded info
                 pos += 49;
+                MessageBox.Show(pos.ToString());
                 // Loop and get data until Values are grabbed
                 while (pos > 0)
                     pos = color.AddData(fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
