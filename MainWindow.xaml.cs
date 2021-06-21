@@ -218,7 +218,6 @@ namespace ParticleEditor
                 var pos = offset;
                 // Skip pass unneeded info
                 pos += 49;
-                MessageBox.Show(pos.ToString());
                 // Loop and get data until Values are grabbed
                 while (pos > 0)
                     pos = color.AddData(fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
