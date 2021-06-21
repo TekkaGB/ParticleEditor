@@ -36,6 +36,14 @@ namespace ParticleEditor
             _forward.Add(t1, t2);
             _reverse.Add(t2, t1);
         }
+        public bool Contains(T1 t1)
+        {
+            return _forward.ContainsKey(t1);
+        }
+        public bool Contains(T2 t2)
+        {
+            return _forward.ContainsValue(t2);
+        }
 
         public Indexer<T1, T2> Forward { get; private set; }
         public Indexer<T2, T1> Reverse { get; private set; }

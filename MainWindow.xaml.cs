@@ -50,9 +50,28 @@ namespace ParticleEditor
                     if (ProcessFile(fileList[0]))
                     {
                         file = Path.ChangeExtension(fileList[0], ".uexp");
-                        ParseData(file);
-                        Particles.ItemsSource = ParticleNames;
-                        Particles.SelectedIndex = 0;
+                        // Parse data if they exist
+                        if (ParticleNames.Count > 0)
+                        {
+                            ParseParticleData(file);
+                            Particles.ItemsSource = ParticleNames;
+                            Particles.SelectedIndex = 0;
+                            Particles.IsEnabled = true;
+                        }
+                        if (NameTable.Contains("VectorParameterValues"))
+                        {
+                            ParseVectorData(file);
+                            Vectors.ItemsSource = VectorData.Keys;
+                            Vectors.SelectedIndex = 0;
+                            Vectors.IsEnabled = true;
+                        }
+                        if (NameTable.Contains("ScalarParameterValues"))
+                        {
+                            ParseScalarData(file);
+                            Scalars.ItemsSource = ScalarData.Keys;
+                            Scalars.SelectedIndex = 0;
+                            Scalars.IsEnabled = true;
+                        }
                     }
             }
         }
@@ -60,6 +79,8 @@ namespace ParticleEditor
         {
             // Reset all current values and boxes
             ParticleData = null;
+            VectorData = null;
+            ScalarData = null;
             EnforceEquality = false;
             MaxValueBoxR.Text = String.Empty;
             MaxValueBoxG.Text = String.Empty;
@@ -67,17 +88,41 @@ namespace ParticleEditor
             MinValueBoxR.Text = String.Empty;
             MinValueBoxG.Text = String.Empty;
             MinValueBoxB.Text = String.Empty;
+            VectorBoxA.Text = String.Empty;
+            VectorBoxR.Text = String.Empty;
+            VectorBoxG.Text = String.Empty;
+            VectorBoxB.Text = String.Empty;
+            ScalarBox.Text = String.Empty;
             MaxValueBoxR.IsEnabled = false;
             MaxValueBoxG.IsEnabled = false;
             MaxValueBoxB.IsEnabled = false;
             MinValueBoxR.IsEnabled = false;
             MinValueBoxG.IsEnabled = false;
             MinValueBoxB.IsEnabled = false;
+            VectorBoxR.IsEnabled = false;
+            VectorBoxG.IsEnabled = false;
+            VectorBoxB.IsEnabled = false;
+            VectorBoxA.IsEnabled = false;
+            ScalarBox.IsEnabled = false;
+            Vectors.ItemsSource = null;
+            Vectors.IsEnabled = false;
             Particles.ItemsSource = null;
+            Particles.IsEnabled = false;
+            Scalars.ItemsSource = null;
+            Scalars.IsEnabled = false;
+            MaxColorPreview.SelectedColor = Colors.Black;
+            MaxColorPreview.IsEnabled = false;
+            MinColorPreview.SelectedColor = Colors.Black;
+            MinColorPreview.IsEnabled = false;
+            VectorColorPreview.SelectedColor = Colors.Black;
+            VectorColorPreview.IsEnabled = false;
         }
         Map<string, int> NameTable;
         HashSet<string> ParticleNames;
         Dictionary<string, ColorOverLife> ParticleData;
+        Dictionary<string, VectorColor> VectorData;
+        Dictionary<string, Scalar> ScalarData;
+
         bool EnforceEquality;
         public enum Game
         {
@@ -137,11 +182,6 @@ namespace ParticleEditor
                         ParticleNames.Add(match.Value.Replace("'", String.Empty));
                 }
             }
-            if (ParticleNames.Count == 0)
-            {
-                MessageBox.Show("uasset doesn't contain ParticleModuleColorOverLife");
-                return false;
-            }
             // Create a map of the names to integers
             NameTable = new();
             using (StreamReader stream = new StreamReader($"{output}{Path.DirectorySeparatorChar}NameTable.txt"))
@@ -152,13 +192,18 @@ namespace ParticleEditor
                     NameTable.Add(tokens[1].Replace(@"""", String.Empty), Int32.Parse(tokens[0]));
                 }
             }
+            if (!NameTable.Contains("VectorParameterValues") && !NameTable.Contains("ScalarParameterValues") && ParticleNames.Count == 0)
+            {
+                MessageBox.Show("uasset doesn't contain ParticleModuleColorOverLife, VectorParameterValues, and ScalarParamterValues");
+                return false;
+            }
             return true;
         }
-        private void ParseData(string file)
+        private void ParseParticleData(string file)
         {
             ParticleData = new();
             // Use ColorOverLife integer to find the start of each Particle
-            var Pattern = new byte[] { (byte)NameTable.Forward["ColorOverLife"], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+            var Pattern = BitConverter.GetBytes(NameTable.Forward["ColorOverLife"]);
             var fileBytes = File.ReadAllBytes(file);
             int offset = 1;
             foreach (var particle in ParticleNames)
@@ -180,7 +225,63 @@ namespace ParticleEditor
                 offset++;
             }
         }
-        
+        private void ParseScalarData(string file)
+        {
+            ScalarData = new();
+            // Use VectorParameterValues integer to find the start
+            var Pattern = BitConverter.GetBytes(NameTable.Forward["ScalarParameterValues"]);
+            var fileBytes = File.ReadAllBytes(file);
+            var found = Search(fileBytes, Pattern);
+            // Go to first name
+            int offset = found + 135;
+            while (true)
+            {
+                var scalar = new Scalar();
+                var finished = false;
+                while (!finished)
+                {
+                    offset = scalar.AddData(fileBytes, offset, NameTable, (Game)GameBox.SelectedIndex, ref finished);
+                    // Break out of infinite loop if failed to parse expected pattern
+                    if (offset == -1)
+                        return;
+                    if (offset == -2)
+                    {
+                        MessageBox.Show("Failed to parse scalar correctly");
+                        return;
+                    }
+                }
+                ScalarData.Add(scalar.name, scalar);
+            }
+        }
+        private void ParseVectorData(string file)
+        {
+            VectorData = new();
+            // Use VectorParameterValues integer to find the start
+            var Pattern = BitConverter.GetBytes(NameTable.Forward["VectorParameterValues"]);
+            var fileBytes = File.ReadAllBytes(file);
+            var found = Search(fileBytes, Pattern);
+            // Go to first name
+            int offset = found + 135;
+            while (true)
+            {
+                var color = new VectorColor();
+                var finished = false;
+                while (!finished)
+                {
+                    offset = color.AddData(fileBytes, offset, NameTable, (Game)GameBox.SelectedIndex, ref finished);
+                    // Break out of infinite loop if failed to parse expected pattern
+                    if (offset == -1)
+                        return;
+                    if (offset == -2)
+                    {
+                        MessageBox.Show("Failed to parse vector correctly");
+                        return;
+                    }
+                }
+                VectorData.Add(color.name, color);
+            }
+        }
+
         // Sig scanning
         private static int Search(byte[] src, byte[] pattern)
         {
@@ -195,7 +296,7 @@ namespace ParticleEditor
             return -1;
         }
 
-        // Get particle data from dictionary when selection is changed
+        // Get data from dictionary when selection is changed
         private void Particles_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (IsLoaded && Particles.ItemsSource != null)
@@ -249,12 +350,12 @@ namespace ParticleEditor
                     ExternalColorChange = false;
                     MaxColorPreview.IsEnabled = false;
                 }
-                UpdateColors();
+                UpdateParticleColors();
             }
         }
 
         bool ExternalColorChange;
-        private void UpdateColors()
+        private void UpdateParticleColors()
         {
             ExternalColorChange = true;
             float MaxR, MaxG, MaxB, MinR, MinG, MinB;
@@ -288,8 +389,6 @@ namespace ParticleEditor
                 try
                 {
                     File.WriteAllBytes(dialog.FileName, fileBytes);
-                    // Copy over uasset as well
-                    File.Copy(Path.ChangeExtension(file, ".uasset"), Path.ChangeExtension(dialog.FileName, ".uasset"), true);
                 }
                 catch (Exception ex)
                 {
@@ -300,61 +399,121 @@ namespace ParticleEditor
         private byte[] ExportData()
         {
             var fileBytes = File.ReadAllBytes(file);
-            foreach (var particle in ParticleData.Values)
+            // Write data if they exist
+            if (ParticleData != null)
             {
-                var pos = particle.offset;
-                pos += 49;
-                // Loop through all particles and write the info
-                while (pos > 0)
-                    pos = particle.OverwriteData(ref fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
-                if (pos == -2)
-                    MessageBox.Show($"Failed to correctly write particle data for {particle}");
+                foreach (var particle in ParticleData.Values)
+                {
+                    var pos = particle.offset;
+                    pos += 49;
+                    // Loop through all particles and write the info
+                    while (pos > 0)
+                        pos = particle.OverwriteData(ref fileBytes, pos, NameTable, (Game)GameBox.SelectedIndex);
+                    if (pos == -2)
+                        MessageBox.Show($"Failed to correctly write particle data for {particle}");
+                }
             }
+            if (VectorData != null)
+            {
+                foreach (var vector in VectorData.Values)
+                {
+                    BitConverter.GetBytes(vector.R).CopyTo(fileBytes, vector.offset);
+                    BitConverter.GetBytes(vector.G).CopyTo(fileBytes, vector.offset + 4);
+                    BitConverter.GetBytes(vector.B).CopyTo(fileBytes, vector.offset + 8);
+                    BitConverter.GetBytes(vector.A).CopyTo(fileBytes, vector.offset + 12);
+                }
+            }
+            if (ScalarData != null)
+                foreach (var scalar in ScalarData.Values)
+                    BitConverter.GetBytes(scalar.value).CopyTo(fileBytes, scalar.offset);
             return fileBytes;
         }
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            float MaxR, MaxG, MaxB, MinR, MinG, MinB;
-            if (!Single.TryParse(MaxValueBoxR.Text, out MaxR) || !Single.TryParse(MaxValueBoxG.Text, out MaxG) || !Single.TryParse(MaxValueBoxB.Text, out MaxB)
-                || !Single.TryParse(MinValueBoxR.Text, out MinR) || !Single.TryParse(MinValueBoxG.Text, out MinG) || !Single.TryParse(MinValueBoxB.Text, out MinB))
+            // Save data of currently selected tab
+            if (ParticleTab.IsSelected)
             {
-                MessageBox.Show("Not all values are valid floats");
-                return;
-            }
-            if (MinR < 0 || MinG < 0 || MinB < 0)
-            {
-                MessageBox.Show("All values must be nonnegative");
-                return;
-            }
-            var selected = Particles.SelectedItem as string;
-            var data = ParticleData[selected];
+                float MaxR, MaxG, MaxB, MinR, MinG, MinB;
+                if (!Single.TryParse(MaxValueBoxR.Text, out MaxR) || !Single.TryParse(MaxValueBoxG.Text, out MaxG) || !Single.TryParse(MaxValueBoxB.Text, out MaxB)
+                    || !Single.TryParse(MinValueBoxR.Text, out MinR) || !Single.TryParse(MinValueBoxG.Text, out MinG) || !Single.TryParse(MinValueBoxB.Text, out MinB))
+                {
+                    MessageBox.Show("Not all values are valid floats");
+                    return;
+                }
+                if (MinR < 0 || MinG < 0 || MinB < 0)
+                {
+                    MessageBox.Show("All values must be nonnegative");
+                    return;
+                }
+                var selected = Particles.SelectedItem as string;
+                var data = ParticleData[selected];
 
-            data.MaxValueVec.R = MaxR;
-            data.MaxValueVec.G = MaxG;
-            data.MaxValueVec.B = MaxB;
-            data.MinValueVec.R = MinR;
-            data.MinValueVec.G = MinG;
-            data.MinValueVec.B = MinB;
+                data.MaxValueVec.R = MaxR;
+                data.MaxValueVec.G = MaxG;
+                data.MaxValueVec.B = MaxB;
+                data.MinValueVec.R = MinR;
+                data.MinValueVec.G = MinG;
+                data.MinValueVec.B = MinB;
 
-            if (!data.KeepMinValueZero)
-                data.MinValue = Math.Min(data.MinValueVec.Min, data.MaxValueVec.Min);
-            data.MaxValue = Math.Max(data.MaxValueVec.Max, data.MinValueVec.Max);
-            if ((data.Values.Count == 3 && !data.NoVectors) || (data.Values.Count == 6 && data.NoMinOrMaxValue))
-            {
-                data.Values[0] = data.MinValueVec.R;
-                data.Values[1] = data.MinValueVec.G;
-                data.Values[2] = data.MinValueVec.B;
+                if (!data.KeepMinValueZero)
+                    data.MinValue = Math.Min(data.MinValueVec.Min, data.MaxValueVec.Min);
+                data.MaxValue = Math.Max(data.MaxValueVec.Max, data.MinValueVec.Max);
+                if ((data.Values.Count == 3 && !data.NoVectors) || (data.Values.Count == 6 && data.NoMinOrMaxValue))
+                {
+                    data.Values[0] = data.MinValueVec.R;
+                    data.Values[1] = data.MinValueVec.G;
+                    data.Values[2] = data.MinValueVec.B;
+                }
+                else if (data.Values.Count == 6)
+                {
+                    data.Values[0] = data.MaxValueVec.R;
+                    data.Values[1] = data.MaxValueVec.G;
+                    data.Values[2] = data.MaxValueVec.B;
+                    data.Values[3] = data.MinValueVec.R;
+                    data.Values[4] = data.MinValueVec.G;
+                    data.Values[5] = data.MinValueVec.B;
+                }
+                ParticleData[selected] = data;
             }
-            else if (data.Values.Count == 6)
+            else if (VectorTab.IsSelected)
             {
-                data.Values[0] = data.MaxValueVec.R;
-                data.Values[1] = data.MaxValueVec.G;
-                data.Values[2] = data.MaxValueVec.B;
-                data.Values[3] = data.MinValueVec.R;
-                data.Values[4] = data.MinValueVec.G;
-                data.Values[5] = data.MinValueVec.B;
+                float R, G, B, A;
+                if (!Single.TryParse(VectorBoxR.Text, out R) || !Single.TryParse(VectorBoxG.Text, out G)
+                    || !Single.TryParse(VectorBoxB.Text, out B) || !Single.TryParse(VectorBoxA.Text, out A))
+                {
+                    MessageBox.Show("Not all values are valid floats");
+                    return;
+                }
+                if (R < 0 || G < 0 || B < 0 || A < 0)
+                {
+                    MessageBox.Show("All values must be nonnegative");
+                    return;
+                }
+                var selected = Vectors.SelectedItem as string;
+                var data = VectorData[selected];
+
+                data.R = R;
+                data.G = G;
+                data.B = B;
+                data.A = A;
+
+                VectorData[selected] = data;
             }
-            ParticleData[selected] = data;
+            else if (ScalarTab.IsSelected)
+            {
+                float V;
+                if (!Single.TryParse(ScalarBox.Text, out V))
+                {
+                    MessageBox.Show("Parameter isn't a valid float");
+                    return;
+                }
+                var selected = Scalars.SelectedItem as string;
+                var data = ScalarData[selected];
+
+                data.value = V;
+
+                ScalarData[selected] = data;
+            }
         }
 
         // Used for keeping the values the same when needed
@@ -362,37 +521,78 @@ namespace ParticleEditor
         {
             if (EnforceEquality)
                 MinValueBoxR.Text = MaxValueBoxR.Text;
-            UpdateColors();
+            UpdateParticleColors();
         }
         private void MaxValueBoxG_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MinValueBoxG.Text = MaxValueBoxG.Text;
-            UpdateColors();
+            UpdateParticleColors();
         }
         private void MaxValueBoxB_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MinValueBoxB.Text = MaxValueBoxB.Text;
-            UpdateColors();
+            UpdateParticleColors();
         }
         private void MinValueBoxR_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MaxValueBoxR.Text = MinValueBoxR.Text;
-            UpdateColors();
+            UpdateParticleColors();
         }
         private void MinValueBoxG_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MaxValueBoxG.Text = MinValueBoxG.Text;
-            UpdateColors();
+            UpdateParticleColors();
         }
         private void MinValueBoxB_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (EnforceEquality)
                 MaxValueBoxB.Text = MinValueBoxB.Text;
-            UpdateColors();
+            UpdateParticleColors();
+        }
+        private void Vectors_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded && Vectors.ItemsSource != null)
+            {
+                var selected = (sender as ComboBox).SelectedItem as string;
+                var data = VectorData[selected];
+                VectorBoxR.IsEnabled = true;
+                VectorBoxG.IsEnabled = true;
+                VectorBoxB.IsEnabled = true;
+                VectorBoxA.IsEnabled = true;
+                VectorColorPreview.IsEnabled = true; 
+                VectorBoxR.Text = data.R.ToString();
+                VectorBoxG.Text = data.G.ToString();
+                VectorBoxB.Text = data.B.ToString();
+                VectorBoxA.Text = data.A.ToString();
+                UpdateVectorColors();
+            }
+        }
+        private void UpdateVectorColors()
+        {
+            ExternalColorChange = true;
+            float R, G, B, A;
+            if (Single.TryParse(VectorBoxR.Text, out R) && Single.TryParse(VectorBoxG.Text, out G)
+                && Single.TryParse(VectorBoxB.Text, out B) && Single.TryParse(VectorBoxA.Text, out A))
+                VectorColorPreview.SelectedColor = Color.FromScRgb(A, R, G, B);
+            ExternalColorChange = false;
+        }
+        private void VectorBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateVectorColors();
+        }
+        private void VectorColorPreview_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
+        {
+            if (!ExternalColorChange && IsLoaded)
+            {
+                VectorBoxR.Text = VectorColorPreview.SelectedColor.Value.ScR.ToString();
+                VectorBoxG.Text = VectorColorPreview.SelectedColor.Value.ScG.ToString();
+                VectorBoxB.Text = VectorColorPreview.SelectedColor.Value.ScB.ToString();
+                VectorBoxA.Text = VectorColorPreview.SelectedColor.Value.ScA.ToString();
+            }
         }
 
         private void MaxColorPreview_SelectedColorChanged(object sender, RoutedPropertyChangedEventArgs<Color?> e)
@@ -411,6 +611,16 @@ namespace ParticleEditor
                 MinValueBoxR.Text = MinColorPreview.SelectedColor.Value.ScR.ToString();
                 MinValueBoxG.Text = MinColorPreview.SelectedColor.Value.ScG.ToString();
                 MinValueBoxB.Text = MinColorPreview.SelectedColor.Value.ScB.ToString();
+            }
+        }
+        private void Scalars_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (IsLoaded && Scalars.ItemsSource != null)
+            {
+                var selected = (sender as ComboBox).SelectedItem as string;
+                var data = ScalarData[selected];
+                ScalarBox.IsEnabled = true;
+                ScalarBox.Text = data.value.ToString();
             }
         }
     }

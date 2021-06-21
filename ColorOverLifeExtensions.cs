@@ -143,6 +143,76 @@ namespace ParticleEditor
                 return -2;
             }
         }
+        public static int AddData(this VectorColor color, byte[] fileBytes, int pos, Map<string, int> NameTable, Game game, ref bool finished)
+        {
+            try
+            {
+                // Write data depending on type
+                switch (NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])])
+                {
+                    case "Name":
+                        pos += 25;
+                        color.name = NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])];
+                        pos += 86;
+                        break;
+                    case "ParameterValue":
+                        pos += 8;
+                        break;
+                    case "StructProperty":
+                        pos += 41;
+                        color.offset = pos;
+                        color.R = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
+                        pos += 4;
+                        color.G = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
+                        pos += 4;
+                        color.B = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
+                        pos += 4;
+                        color.A = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
+                        pos += 126;
+                        finished = true;
+                        break;
+                    default:
+                        return -1;
+                }
+                return pos;
+            }
+            catch (Exception)
+            {
+                return -2;
+            }
+        }
+        public static int AddData(this Scalar scalar, byte[] fileBytes, int pos, Map<string, int> NameTable, Game game, ref bool finished)
+        {
+            try
+            {
+                // Write data depending on type
+                switch (NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])])
+                {
+                    case "Name":
+                        pos += 25;
+                        scalar.name = NameTable.Reverse[BitConverter.ToInt32(fileBytes[pos..(pos + 4)])];
+                        pos += 86;
+                        break;
+                    case "ParameterValue":
+                        pos += 8;
+                        break;
+                    case "FloatProperty":
+                        pos += 17;
+                        scalar.offset = pos;
+                        scalar.value = BitConverter.ToSingle(fileBytes[pos..(pos + 4)]);
+                        pos += 126;
+                        finished = true;
+                        break;
+                    default:
+                        return -1;
+                }
+                return pos;
+            }
+            catch (Exception)
+            {
+                return -2;
+            }
+        }
         static bool ByteArrayCompare(ReadOnlySpan<byte> a1, ReadOnlySpan<byte> a2)
         {
             return a1.SequenceEqual(a2);

@@ -41,4 +41,19 @@ namespace ParticleEditor
             return (this.R == other.R && this.G == other.G && this.B == other.B);
         }
     }
+    public class VectorColor
+    {
+        public float R;
+        public float G;
+        public float B;
+        public float A;
+        public int offset;
+        public string name;
+    }
+    public class Scalar
+    {
+        public float value;
+        public int offset;
+        public string name;
+    }
 }
