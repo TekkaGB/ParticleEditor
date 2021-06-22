@@ -155,9 +155,9 @@ namespace ParticleEditor
             startInfo.CreateNoWindow = true;
             startInfo.UseShellExecute = false;
             startInfo.FileName = UexpExtractor;
-            var version = 4.25;
+            var version = "4.25";
             if (GameBox.SelectedIndex == 1)
-                version = 4.17;
+                version = "4.17";
             startInfo.Arguments = $@"-game=ue{version} ""{Path.ChangeExtension(file, ".uasset")}""";
             startInfo.WorkingDirectory = AssemblyLocation;
             var output = $"{AssemblyLocation}{Path.DirectorySeparatorChar}{Path.GetFileNameWithoutExtension(file)}";
@@ -651,41 +651,48 @@ namespace ParticleEditor
 
         private void FileBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = $"Unreal Assets (*.uasset, *.uexp)|*.uasset; *.uexp";
-            dialog.Title = $"Select .uasset/.uexp to edit";
-            dialog.Multiselect = false;
-            dialog.InitialDirectory = AssemblyLocation;
-            dialog.ShowDialog();
-            if (!String.IsNullOrEmpty(dialog.FileName))
+            try
             {
-                Reset();
-                if (ProcessFile(dialog.FileName))
+                OpenFileDialog dialog = new OpenFileDialog();
+                dialog.Filter = $"Unreal Assets (*.uasset, *.uexp)|*.uasset; *.uexp";
+                dialog.Title = $"Select .uasset/.uexp to edit";
+                dialog.Multiselect = false;
+                dialog.InitialDirectory = AssemblyLocation;
+                dialog.ShowDialog();
+                if (!String.IsNullOrEmpty(dialog.FileName))
                 {
-                    file = Path.ChangeExtension(dialog.FileName, ".uexp");
-                    // Parse data if they exist
-                    if (ParticleNames.Count > 0)
+                    Reset();
+                    if (ProcessFile(dialog.FileName))
                     {
-                        ParseParticleData(file);
-                        Particles.ItemsSource = ParticleNames;
-                        Particles.SelectedIndex = 0;
-                        Particles.IsEnabled = true;
-                    }
-                    if (NameTable.Contains("VectorParameterValues"))
-                    {
-                        ParseVectorData(file);
-                        Vectors.ItemsSource = VectorData.Keys;
-                        Vectors.SelectedIndex = 0;
-                        Vectors.IsEnabled = true;
-                    }
-                    if (NameTable.Contains("ScalarParameterValues"))
-                    {
-                        ParseScalarData(file);
-                        Scalars.ItemsSource = ScalarData.Keys;
-                        Scalars.SelectedIndex = 0;
-                        Scalars.IsEnabled = true;
+                        file = Path.ChangeExtension(dialog.FileName, ".uexp");
+                        // Parse data if they exist
+                        if (ParticleNames.Count > 0)
+                        {
+                            ParseParticleData(file);
+                            Particles.ItemsSource = ParticleNames;
+                            Particles.SelectedIndex = 0;
+                            Particles.IsEnabled = true;
+                        }
+                        if (NameTable.Contains("VectorParameterValues"))
+                        {
+                            ParseVectorData(file);
+                            Vectors.ItemsSource = VectorData.Keys;
+                            Vectors.SelectedIndex = 0;
+                            Vectors.IsEnabled = true;
+                        }
+                        if (NameTable.Contains("ScalarParameterValues"))
+                        {
+                            ParseScalarData(file);
+                            Scalars.ItemsSource = ScalarData.Keys;
+                            Scalars.SelectedIndex = 0;
+                            Scalars.IsEnabled = true;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
     }
