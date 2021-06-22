@@ -465,11 +465,6 @@ namespace ParticleEditor
                     MessageBox.Show("Not all values are valid floats");
                     return;
                 }
-                if (MinR < 0 || MinG < 0 || MinB < 0)
-                {
-                    MessageBox.Show("All values must be nonnegative");
-                    return;
-                }
                 var selected = Particles.SelectedItem as string;
                 var data = ParticleData[selected];
 
@@ -507,11 +502,6 @@ namespace ParticleEditor
                     || !Single.TryParse(VectorBoxB.Text, out B) || !Single.TryParse(VectorBoxA.Text, out A))
                 {
                     MessageBox.Show("Not all values are valid floats");
-                    return;
-                }
-                if (R < 0 || G < 0 || B < 0 || A < 0)
-                {
-                    MessageBox.Show("All values must be nonnegative");
                     return;
                 }
                 var selected = Vectors.SelectedItem as string;
