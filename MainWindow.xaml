@@ -21,8 +21,11 @@
                 <ComboBoxItem IsSelected="True">Guilty Gear -STRIVE-</ComboBoxItem>
                 <ComboBoxItem>Dragon Ball FighterZ</ComboBoxItem>
             </ComboBox>
-        <Border Grid.Row="1" Name="FileBox" Margin="20" Background="#404040" BorderBrush="#353535" DragEnter="FileBox_DragEnter" Drop="FileBox_Drop" AllowDrop="True">
-            <TextBlock Foreground="#f2f2f2" VerticalAlignment="Center" HorizontalAlignment="Center" Text="Drag and Drop .uexp/.uasset"/>
+        <Border Grid.Row="1" Name="FileBox" Margin="20" Background="#404040" BorderBrush="#353535" DragEnter="FileBox_DragEnter" Drop="FileBox_Drop" AllowDrop="True" PreviewMouseLeftButtonDown="FileBox_PreviewMouseLeftButtonDown" Cursor="Hand">
+                <TextBlock TextAlignment="Center" Foreground="#f2f2f2" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    Drag and Drop .uexp/.uasset
+                    <LineBreak/>Or Click to Browse and Select .uexp/.uasset
+                </TextBlock>
         </Border>
         </Grid>
         <Grid Grid.Column="1">

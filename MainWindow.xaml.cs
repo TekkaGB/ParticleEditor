@@ -648,5 +648,45 @@ namespace ParticleEditor
                 ScalarBox.Text = data.value.ToString();
             }
         }
+
+        private void FileBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = $"Unreal Assets (*.uasset, *.uexp)|*.uasset; *.uexp";
+            dialog.Title = $"Select .uasset/.uexp to edit";
+            dialog.Multiselect = false;
+            dialog.InitialDirectory = AssemblyLocation;
+            dialog.ShowDialog();
+            if (!String.IsNullOrEmpty(dialog.FileName))
+            {
+                Reset();
+                if (ProcessFile(dialog.FileName))
+                {
+                    file = Path.ChangeExtension(dialog.FileName, ".uexp");
+                    // Parse data if they exist
+                    if (ParticleNames.Count > 0)
+                    {
+                        ParseParticleData(file);
+                        Particles.ItemsSource = ParticleNames;
+                        Particles.SelectedIndex = 0;
+                        Particles.IsEnabled = true;
+                    }
+                    if (NameTable.Contains("VectorParameterValues"))
+                    {
+                        ParseVectorData(file);
+                        Vectors.ItemsSource = VectorData.Keys;
+                        Vectors.SelectedIndex = 0;
+                        Vectors.IsEnabled = true;
+                    }
+                    if (NameTable.Contains("ScalarParameterValues"))
+                    {
+                        ParseScalarData(file);
+                        Scalars.ItemsSource = ScalarData.Keys;
+                        Scalars.SelectedIndex = 0;
+                        Scalars.IsEnabled = true;
+                    }
+                }
+            }
+        }
     }
 }
