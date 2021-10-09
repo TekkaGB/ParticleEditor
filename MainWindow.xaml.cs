@@ -88,6 +88,7 @@ namespace ParticleEditor
             MinColorPreview.IsEnabled = false;
             VectorColorPreview.SelectedColor = Colors.Black;
             VectorColorPreview.IsEnabled = false;
+            VectorColorNoAlphaPreview.Background = new SolidColorBrush(Colors.Black);
             MaxValueBoxR.Text = String.Empty;
             MaxValueBoxG.Text = String.Empty;
             MaxValueBoxB.Text = String.Empty;
@@ -592,7 +593,10 @@ namespace ParticleEditor
             float R, G, B, A;
             if (Single.TryParse(VectorBoxR.Text, out R) && Single.TryParse(VectorBoxG.Text, out G)
                 && Single.TryParse(VectorBoxB.Text, out B) && Single.TryParse(VectorBoxA.Text, out A))
+            {
                 VectorColorPreview.SelectedColor = Color.FromScRgb(A, R, G, B);
+                VectorColorNoAlphaPreview.Background = new SolidColorBrush(Color.FromScRgb(1, R, G, B));
+            }
             ExternalColorChange = false;
         }
         private void VectorBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -607,6 +611,8 @@ namespace ParticleEditor
                 VectorBoxG.Text = VectorColorPreview.SelectedColor.Value.ScG.ToString();
                 VectorBoxB.Text = VectorColorPreview.SelectedColor.Value.ScB.ToString();
                 VectorBoxA.Text = VectorColorPreview.SelectedColor.Value.ScA.ToString();
+                VectorColorNoAlphaPreview.Background = new SolidColorBrush(Color.FromScRgb(1, VectorColorPreview.SelectedColor.Value.ScR, 
+                    VectorColorPreview.SelectedColor.Value.ScG, VectorColorPreview.SelectedColor.Value.ScB));
             }
         }
 

@@ -152,6 +152,7 @@
                                 <StackPanel Orientation="Horizontal" Grid.ColumnSpan="4">
                                     <TextBlock Margin="5" Foreground="#f2f2f2" VerticalAlignment="Center" Text="Color Vector:"/>
                                     <xctk:ColorPicker TabBackground="#353535" TabForeground="#f2f2f2" IsEnabled="False" Width="100" ShowAvailableColors="False" ShowStandardColors="False" ShowTabHeaders="False" ShowDropDownButton="False" ColorMode="ColorCanvas" Name="VectorColorPreview" SelectedColorChanged="VectorColorPreview_SelectedColorChanged" SelectedColor="Black"/>
+                                    <Border Width="100" Background="Black" Name="VectorColorNoAlphaPreview"/>
                                 </StackPanel>
                                 <StackPanel Margin="5" Grid.Row="1">
                                     <TextBlock Foreground="#f2f2f2" VerticalAlignment="Center" Text="R:"/>
