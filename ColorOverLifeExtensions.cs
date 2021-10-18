@@ -45,11 +45,10 @@ namespace ParticleEditor
                             pos += 180;
                         break;
                     case "TimeScale":
-                        // Different offsets for different games
-                        if (game == Game.GGS)
-                            pos += 58;
-                        else if (game == Game.DBFZ)
-                            pos += 29;
+                        pos += 29;  // Originally 58 for GGS and 29 for DBZ, but it caused an exception for GGS. This might only affect some ParticleModuleColorOverLife with TimeScale property in the Table. Will need to test for other cases.
+                        break;
+                    case "TimeBias":
+                        pos += 29;  // When testing other cases, found that TimeBias is another factor that can break the process. This is why I believe it was initially set to 58, since TimeScale and TimeBias together makes 58. This is not the case for all cases!
                         break;
                     case "Values":
                         pos += 37;
@@ -116,11 +115,10 @@ namespace ParticleEditor
                             pos += 180;
                         break;
                     case "TimeScale":
-                        // Different offsets for different games
-                        if (game == Game.GGS)
-                            pos += 58;
-                        else if (game == Game.DBFZ)
-                            pos += 29;
+                        pos += 29;  // Originally 58 for GGS and 29 for DBZ, but it caused an exception for GGS. This might only affect some ParticleModuleColorOverLife with TimeScale property in the Table.
+                        break;
+                    case "TimeBias":
+                        pos += 29;  // When testing other cases for GGS, found that TimeBias is another factor that can break the process. This is why I believe TimeScale was initially set to 58 for GGST, since TimeScale and TimeBias together makes 58.
                         break;
                     case "Values":
                         pos += 37;
